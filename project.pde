@@ -2,7 +2,12 @@
 //some constant
 final int stateMenu = 0;
 final int stateTutorial = 1;
-final int stateGame = 2;
+final int stateConfiguration = 2;
+final int stateGame = 3;
+
+final int stateStandby = 0;
+final int stateMain = 1;
+final int stateResult = 2;
 
 //global variables
 int state = 0;
@@ -24,22 +29,12 @@ void setup(){
   
   dotGothic = createFont("DotGothic16-Regular.ttf", 100);
   determinationMono  = createFont("DeterminationMonoWebRegular-Z5oq.ttf", 100);
+  ellipseMode(CENTER);
   
 }
 
 void draw(){
-  if (state == stateMenu){
-    engine.menu();
-  }
-  if (state == stateTutorial){
-    engine.tutorial();
-  }
-  if (state == stateGame){
-    engine.game();
-  }
-  if (keyPressed){
-      Mouse.action();
-  }
+  engine.render(Mouse);
 }
 
 class cursor{
@@ -60,7 +55,7 @@ class cursor{
     }
     if (key == ENTER){
       if (pos == 400){
-        state = 2;
+        state = 3;
       }
       if (pos == 450){
         state = 1;
@@ -73,7 +68,30 @@ class cursor{
 }
 
 class graphics{
+  game Game = new game(3);
+  String[] rank = new String[3];
   graphics(){
+    rank[0] = "st";
+    rank[1] = "nd";
+    rank[2] = "rd";
+  }
+  
+  void render(cursor Mouse){
+    if (state == stateMenu){
+      this.menu();
+    }
+    if (state == stateTutorial){
+      this.tutorial();
+    }
+    if (state == stateConfiguration){
+      this.configuration();
+    }
+    if (state == stateGame){
+      this.Game.operate();
+    }
+    if (keyPressed){
+      Mouse.action();
+    }
   }
 
   void menu(){
@@ -101,62 +119,142 @@ class graphics{
     text("   5 secs won.", 30, 380);
   }
   
-  void game(){
+  void configuration(){
+    this.backgroundGame();
+    textFont(determinationMono, 50);
+    text("Press \"B\" to back to Menu ", 10, 40);
+    textFont(determinationMono, 100);
+    text("OPTIONS", 200, 150);
+  }
+  
+  void standby(){
+    background(0, 100, 0);
+  }
+  
+  void backgroundGame(){
     background(0, 100, 150);
+  }
+  
+  void result(int[] finishedFrame){
+    int y = 300;
+    
+    background(0, 100, 150);
+    textFont(determinationMono, 50);
+    text("Press \"B\" to back to Menu ", 10, 40);
+    textFont(determinationMono, 100);
+    text("RESULT", 200, 150);
+    textFont(determinationMono, 30);
+    for (int i = 0; i < 3; i++){
+      text(finishedFrame[i], 200, y);
+      y += 50;
+    }
+    
   }
 }
 
 
 
 class player{
+  int number, finishedFrame;
   int[] pos = new int[2];
+  int speed = 0;
   boolean fall = false;
+  char[] dic = new char[3];
   // (x, y) = (pos[0], pos[1])
-  void keyPressed(){
-     //to fall
+  
+  player(int number){
+    this.number = number;
+    this.pos[0] = 300 + 100 * number;
+    this.pos[1] = 50;
+    this.dic[0] = 'a';
+    this.dic[1] = 'g';
+    this.dic[2] = 'l';
+  }
+  
+  void move(int frame){
+    if (this.finishedFrame == 0){
+      if (keyPressed && key == dic[this.number]){
+        this.fall = true;
+      }
+      if (this.fall){
+        this.speed += 5 * frame / 60;
+        this.pos[1] += this.speed;
+      }
+      if (this.pos[1] > 500){
+        this.pos[1] = 500;
+        this.finishedFrame = frame;
+      }
+    }
+  }
+  
+  void render(int frame){
+    this.move(frame);
+    ellipse(pos[0], pos[1], 20, 20);
   }
 }
 
-class Game{
-  // constant for readability
-  final int STATE_READY = 0;
-  final int STATE_MAIN = 1;
-  final int STATE_RESULT = 2;
+class game{
   
   // all the variable is here
   int playerCount, frame;
+  int gameState;
   player[] playerList = new player[3];
   
   // constructor
-  Game(int player){
-    frame = 0;
-    playerCount = player;
+  game(int player){
+    this.gameState = stateStandby;
+    this.frame = 0;
+    this.playerCount = player;
     //create player
     for (int i = 0 ; i < playerCount; i++){
-      playerList[i] = new player();
+      this.playerList[i] = new player(i);
     } 
     
   }
   
-  void await(){
-    while (!keyPressed){
-      
+  //determine the state
+  void operate(){
+    if (this.gameState == stateStandby){
+      this.standby();
     }
-    
-  }
-  
-  
-  //where the game run
-  void operate(int gameState){
-    switch(gameState){
-      case STATE_READY:
-        //do something
-      case STATE_MAIN:
-        //do something
-      case STATE_RESULT:
-        //do something
+    else if (this.gameState == stateMain){
+      this.run();
+    }
+    else{
+      this.result();
     }
   }
+ 
+  void standby(){
+    engine.standby();
+    if (keyPressed && key == 't'){
+      this.gameState = stateMain;
+    }
+  }
   
+  void run(){
+    if (frame == 300){
+         this.gameState = stateResult;
+         return;
+    }
+    else{
+      this.frame += 1;
+      engine.backgroundGame();
+      textFont(determinationMono, 50);
+      text(frame / 60, width / 2, height / 2);
+      text((frame % 60) * 5 / 3, width / 2 + 50, height / 2);
+      for (int i = 0; i < 3; i++){
+          this.playerList[i].render(frame);
+      }
+    }
+  }
+  
+  void result(){
+    int[] finishedFrame = new int[3];
+    for (int i = 0; i < 3; i++){
+      finishedFrame[i] = 500 - this.playerList[i].finishedFrame;
+    }
+    engine.result(finishedFrame);
+  }
   
 }
