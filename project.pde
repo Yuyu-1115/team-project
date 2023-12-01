@@ -22,7 +22,6 @@ void setup(){
   size(800, 600);
   
   //load the font
-  
   dotGothic = createFont("DotGothic16-Regular.ttf", 100);
   determinationMono  = createFont("DeterminationMonoWebRegular-Z5oq.ttf", 100);
   ellipseMode(CENTER);
@@ -49,8 +48,8 @@ class cursor{
   cursor(){
     now = 0;
     max[0] = 3;
-    max[1] = 100;
-    max[2] = 20;
+    max[1] = 10;
+    max[2] = 200;
   }
   void render(){
     fill(255, 255, 0);
@@ -92,11 +91,15 @@ class cursor{
       now++;
     }
     if (key == 'a'){
-    
+      if (engine.config[now] > 1){
+        engine.config[now]--;
+      }
     }
     
     if (key == 'd'){
-    
+      if (engine.config[now] < this.max[now]){
+        engine.config[now]++;
+      }
     }
     
     
@@ -168,13 +171,13 @@ class graphics{
     textFont(determinationMono, 100);
     text("TUTORIAL", 200, 150);
     textFont(determinationMono, 30);
-    text("1. Try to fall to the ground in exactly 5 seconds!", 30, 200);
+    text("1. Try to fall to the ground in the exact time", 30, 200);
     text("2. Click the corresponding button whenever you", 30, 230);
     text("   want, and your character will fall.", 30, 260);
-    text("3. If you land within 5 secs, you're fine.", 30, 290);
-    text("4. But if you spend more than 5 secs, you lose.", 30, 320);
+    text("3. If you land within times, you're fine.", 30, 290);
+    text("4. But if you think too long, you lose.", 30, 320);
     text("5. The player whose landing time is the closest to ", 30, 350);
-    text("   5 secs won.", 30, 380);
+    text("   the given time won.", 30, 380);
   }
   
   void configuration(){
@@ -196,8 +199,8 @@ class graphics{
         fill(255);
       }
       text(this.option[i], 100, 300 + i * 50);
-      text("<   >", 300, 300 + i * 50);
-      text(this.config[i], 350, 300 + i * 50);
+      text("<     >", 300, 300 + i * 50);
+      text(this.config[i], 380, 300 + i * 50);
     }
   }
   
@@ -230,21 +233,20 @@ class graphics{
       line(180 * i + 80, 100, 180 * i + 80, 550);
     }
     
-    //timeclock
+    //clock
     strokeWeight(2);
     for (int i = 0; i < this.Game.playerCount; i++){
       stroke(this.Game.playerList[i].colour[0], this.Game.playerList[i].colour[1], this.Game.playerList[i].colour[2]);
       fill(0);
       rect(160 + 180 * i, 25, 280 + 180 * i, 80);
       fill(255);
+      textFont(determinationMono, 60);
       if (!this.Game.playerList[i].finished){
-        textFont(determinationMono, 60);
         text(frame / 60, 160 + 180 * i, 75);
         text(".", 190 + 180 * i, 75);
         text((frame % 60) * 5 / 3, 200 + 180 * i, 75);
       }
       else{
-        textFont(determinationMono, 60);
         text(this.Game.playerList[i].result[1] / 60, 160 + 180 * i, 75);
         text(".", 190 + 180 * i, 75);
         text((this.Game.playerList[i].result[1] % 60) * 5 / 3, 200 + 180 * i, 75);
@@ -297,13 +299,13 @@ class graphics{
     player temp;
     for (int i = 0; i < this.Game.playerCount; i++){
       test[i] = list[i].result[1];
-      list[i].result[1] = abs(300 - list[i].result[1]);
+      list[i].result[1] = abs(this.Game.time - list[i].result[1]);
     }
    
     // sort   
     //I know bubble sort is inefficient, but n = 3, so who cares
-    for (int i = 0; i < 3; i++){
-      for (int j = 0; j < 2 - i; j++){
+    for (int i = 0; i < this.Game.playerCount; i++){
+      for (int j = 0; j < this.Game.playerCount - 1 - i; j++){
          if (list[j].result[1] > list[j + 1].result[1]){
              //swap
              temp = list[j + 1];
@@ -354,7 +356,7 @@ class player{
     }
     
   }
-  void update(int frame){
+  boolean update(int frame, int time){
     if (!this.finished){
       if (keyPressed && key == dic[this.result[0]]){
         this.fall = true;
@@ -366,13 +368,15 @@ class player{
       }
       if (this.pos[1] > 500){
         this.pos[1] = 500;
-        this.result[1] = frame;
+        this.result[1] = frame > time ? 10000 : frame;
         this.finished = true;
+        return true;
       }
     }
     stroke(0);
     fill(this.colour[0], this.colour[1], this.colour[2]);
     ellipse(this.pos[0], this.pos[1], 20, 20);
+    return false;
   }
 }
 
@@ -382,6 +386,7 @@ class game{
   int playerCount, frame;
   int gameState;
   int time, acceleration;
+  int finishedCount;
   player[] playerList = new player[3];
   
   // constructor
@@ -420,23 +425,21 @@ class game{
   void run(){
     boolean finished = true;
     
-    if (frame >= this.time){
+    if (this.frame >= this.time){
        for (int i = 0; i < this.playerCount; i++){
          if (this.playerList[i].fall && !this.playerList[i].finished){
            finished = false;
          }
        }
-       if (finished){
+       if (finished && this.frame == this.time + 60){
            this.gameState = stateResult;
            return;
        }    
     }
-    this.frame += 1;
+    this.frame++;
     engine.backgroundGame(this.frame);
-    stroke(#FFFFFF);
-    textFont(determinationMono, 50);
     for (int i = 0; i < this.playerCount; i++){
-        this.playerList[i].update(this.frame);
+      this.playerList[i].update(this.frame, this.time);
     }
   }
   
