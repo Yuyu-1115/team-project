@@ -52,8 +52,7 @@ class cursor{
     max[2] = 200;
   }
   void render(){
-    fill(255, 255, 0);
-    text(">", 75, 400 + 50 * now);
+    engine.texting(">", 75, 400 + 50 * now, 2, determinationMono, 50, 255, 255, 0);
   }
   void actionMenu(){
     if (key == 'w' && now > 0){
@@ -114,6 +113,7 @@ class graphics{
   String[] suffix = new String[3];
   String[] option = new String[3];
   String[] menu = new String[3];
+  int frame = 0;
   graphics(){
     suffix[0] = "st";
     suffix[1] = "nd";
@@ -145,32 +145,29 @@ class graphics{
   }
 
   void menu(){
-    fill(255);
     background(0, 100, 150);
-    textFont(determinationMono, 100);
-    text("Safe Landing", 100, 200);
-    textFont(determinationMono, 50);
+    this.texting("Safe Landing", 100, 200, 5, determinationMono, 100, 255);
     
-    
+    // mouse
     for (int i = 0; i < 3; i++){
       if (i == Mouse.now){
-        fill(255, 255, 0);
+        this.texting(this.menu[i], 100, 400 + i * 50, 3, determinationMono, 50, 255, 255, 0);
       }
       else{
-        fill(255);
+        this.texting(this.menu[i], 100, 400 + i * 50, 0, determinationMono, 50, 255);
       }
-      text(this.menu[i], 100, 400 + i * 50);
     }
     Mouse.render();
   }
   void tutorial(){
-    fill(255);
+    
     background(0, 100, 150);
-    textFont(determinationMono, 50);
-    text("Press \"B\" to back to Menu ", 10, 40);
-    textFont(determinationMono, 100);
-    text("TUTORIAL", 200, 150);
+    this.texting("Press \"B\" to back to Menu ", 10, 40, 3, determinationMono, 50, 255);
+    this.texting("TUTORIAL", 200, 150, 5, determinationMono, 100, 255);
+    
+    fill(255);
     textFont(determinationMono, 30);
+    
     text("1. Try to fall to the ground in the exact time", 30, 200);
     text("2. Click the corresponding button whenever you", 30, 230);
     text("   want, and your character will fall.", 30, 260);
@@ -184,29 +181,28 @@ class graphics{
     
     
     background(0, 100, 120);
-    fill(255);
-    textFont(determinationMono, 50);
-    text("Press \"B\" to back to Menu ", 10, 40);
-    textFont(determinationMono, 100);
-    text("OPTIONS", 200, 150);
+    this.texting("Press \"B\" to back to Menu ", 10, 40, 3, determinationMono, 50, 255);
+    this.texting("OPTIONS", 200, 150, 5, determinationMono, 100, 255);
     
     textFont(determinationMono, 50);
     for (int i = 0; i < 3; i++){
       if (i == Mouse.now){
-        fill(255, 255, 0);
+        this.texting(this.option[i], 100, 300 + i * 50, 3, determinationMono, 50, 255, 255, 0);
+        this.texting("<     >", 300, 300 + i * 50, 3, determinationMono, 50, 255, 255, 0);
+        this.texting(this.config[i], 380, 300 + i * 50, 3, determinationMono, 50, 255, 255, 0);
       }
       else{
-        fill(255);
+        this.texting(this.option[i], 100, 300 + i * 50, 0, determinationMono, 50, 255);
+        this.texting(this.config[i], 380, 300 + i * 50, 0, determinationMono, 50, 255);
       }
-      text(this.option[i], 100, 300 + i * 50);
-      text("<     >", 300, 300 + i * 50);
-      text(this.config[i], 380, 300 + i * 50);
     }
   }
   
   void standby(){
     this.await = false;
-    background(0, 100, 0);
+    this.frame++;
+    engine.backgroundGame(0);
+    this.texting("Press [T] to get ready!", 140, 300, 5, determinationMono, 50, 255);
     
   }
   
@@ -215,6 +211,7 @@ class graphics{
     background(200);
     
     //wall
+    stroke(0);
     fill(#7C4D14);
     strokeWeight(3);
     rect(0, 100, 100, height);
@@ -238,20 +235,36 @@ class graphics{
     for (int i = 0; i < this.Game.playerCount; i++){
       stroke(this.Game.playerList[i].colour[0], this.Game.playerList[i].colour[1], this.Game.playerList[i].colour[2]);
       fill(0);
-      rect(160 + 180 * i, 25, 280 + 180 * i, 80);
+      rect(160 + 180 * i, 510, 280 + 180 * i, 565);
       fill(255);
       textFont(determinationMono, 60);
       if (!this.Game.playerList[i].finished){
-        text(frame / 60, 160 + 180 * i, 75);
-        text(".", 190 + 180 * i, 75);
-        text((frame % 60) * 5 / 3, 200 + 180 * i, 75);
+        text(frame / 60, 160 + 180 * i, 555);
+        text(".", 190 + 180 * i, 555);
+        text((frame % 60) * 5 / 3, 200 + 180 * i, 555);
       }
       else{
-        text(this.Game.playerList[i].result[1] / 60, 160 + 180 * i, 75);
-        text(".", 190 + 180 * i, 75);
-        text((this.Game.playerList[i].result[1] % 60) * 5 / 3, 200 + 180 * i, 75);
+        this.texting(this.Game.playerList[i].result[1] / 60, 160 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
+        this.texting(".", 190 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
+        this.texting((this.Game.playerList[i].result[1] % 60) * 5 / 3, 200 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
+        
       }
     }
+    
+    //banner
+    this.frame++;
+    stroke(0);
+    fill(0);
+    rect(140, 20, 660, 100);
+    if ((this.frame / 180) % 2 == 0){
+      this.texting("SAFE", 150, 90, 0, determinationMono, 80, 255);
+      this.texting("LANDING", 375, 90, 0, determinationMono, 80, 255);
+    }else{
+      this.texting("GOAL:", 150, 90, 0, determinationMono, 80, 255);
+      this.texting( this.config[1], 420, 90, 0, determinationMono, 80, 255, 255, 0);
+      this.texting("sec(s)", 520, 90, 0, determinationMono, 40, 255);
+    }
+    
   }
   
   void result(){
@@ -259,14 +272,11 @@ class graphics{
     int y = 200;
     int initX = 100;
     if (!this.await){
+      
       player[] rank = this.ranking(this.Game.playerList);
-    
-      fill(255);
       background(0, 100, 150);
-      textFont(determinationMono, 50);
-      text("Press \"B\" to back to Menu ", 10, 40);
-      textFont(determinationMono, 100);
-      text("RESULT", 250, 150);
+      this.texting("Press \"B\" to back to Menu ", 10, 40, 3, determinationMono, 50, 255);
+      this.texting("RESULT", 250, 150, 5, determinationMono, 100, 255);
       textFont(determinationMono, 30);
       
       
@@ -320,6 +330,37 @@ class graphics{
     
     
     return list; 
+  }
+  
+  // custom text for simplicity
+  void texting(String text, int x, int y, int shift, PFont font, int size, int R, int G, int B){
+    textFont(font, size);  
+    fill(150);
+    text(text, x - shift, y + shift);
+    fill(R, G, B);
+    text(text, x, y);
+  }
+  void texting(String text, int x, int y, int shift, PFont font, int size, int fill){
+    textFont(font, size);
+    fill(150);
+    text(text, x - shift, y + shift);
+    fill(fill);
+    text(text, x, y);
+  }
+  
+  void texting(int text, int x, int y, int shift, PFont font, int size, int R, int G, int B){
+    textFont(font, size);  
+    fill(150);
+    text(text, x - shift, y + shift);
+    fill(R, G, B);
+    text(text, x, y);
+  }
+  void texting(int text, int x, int y, int shift, PFont font, int size, int fill){
+    textFont(font, size);
+    fill(150);
+    text(text, x - shift, y + shift);
+    fill(fill);
+    text(text, x, y);
   }
 }
 
@@ -376,6 +417,15 @@ class player{
     stroke(0);
     fill(this.colour[0], this.colour[1], this.colour[2]);
     ellipse(this.pos[0], this.pos[1], 20, 20);
+    
+    if (!this.fall){
+    fill(100);
+    rectMode(CORNER);
+    rect(pos[0] - 60, 160, 120, 20);
+    engine.texting("Press [ ]!!", this.pos[0] - 40, 175, 0, determinationMono, 15, 255);
+    engine.texting(str(char(this.dic[this.result[0]] - 32)), this.pos[0] + 13, 175, 0, determinationMono, 15, 255, 255, 0);
+    }
+    
     return false;
   }
 }
