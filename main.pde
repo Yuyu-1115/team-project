@@ -1,30 +1,15 @@
-
-//some constant
-final int stateMenu = 0;
-final int stateTutorial = 1;
-final int stateConfiguration = 2;
-final int stateGame = 3;
-
-final int stateStandby = 0;
-final int stateMain = 1;
-final int stateResult = 2;
-
-//global variables
 int state = 0;
-int time = 0;
 cursor Mouse = new cursor();
 graphics engine = new graphics();
 
 //images and fonts
-PFont dotGothic, determinationMono;
+PFont determinationMono;
 
 void setup(){
   size(800, 600);
   
   //load the font
-  dotGothic = createFont("DotGothic16-Regular.ttf", 100);
   determinationMono  = createFont("DeterminationMonoWebRegular-Z5oq.ttf", 100);
-  ellipseMode(CENTER);
   
 }
 
@@ -33,27 +18,45 @@ void draw(){
 }
 
 void keyPressed(){
-  if (state == stateConfiguration){
-    Mouse.actionConfiguration();
-  }
-  else{
-    Mouse.actionMenu();
-  }
+  Mouse.update();
 }
 
 class cursor{
   int now;
   int[] max = new int[3];
+  int[] underline = new int[3];
   
   cursor(){
     now = 0;
     max[0] = 3;
-    max[1] = 10;
+    max[1] = 9;
     max[2] = 200;
+    underline[0] = 220;
+    underline[1] = 295;
+    underline[2] = 245;
   }
   void render(){
+    stroke(255, 255, 0);
+    line(100, 405 + 50 * now, this.underline[now], 405 + 50 * now);
     engine.texting(">", 75, 400 + 50 * now, 2, determinationMono, 50, 255, 255, 0);
   }
+  
+  void update(){
+    if (state == graphics.stateMenu){
+      this.actionMenu();
+      
+    }
+    if (state == graphics.stateConfiguration){
+      this.actionConfiguration();
+    }
+    if (key == 'b'){
+      state = graphics.stateMenu;
+      now = 0;
+    }
+  }
+  
+  
+  
   void actionMenu(){
     if (key == 'w' && now > 0){
       now--;
@@ -61,28 +64,20 @@ class cursor{
     if (key == 's' && now < 2){
       now++;
     }
-    if (key == ENTER && state == stateMenu){
+    if (key == ENTER && state == graphics.stateMenu){
       if (now == 0){
         engine.Game = new game(engine.config[0], engine.config[1], engine.config[2]);
-        state = stateGame;
+        state = graphics.stateGame;
       }
       if (now == 1){
-        state = stateTutorial;
+        state = graphics.stateTutorial;
       }
       if (now == 2){
-        state = stateConfiguration;
+        state = graphics.stateConfiguration;
       }
-    }
-    if (key == 'b'){
-      state = stateMenu;
-      now = 0;
     }
   }
   void actionConfiguration(){
-    if (key == 'b'){
-      state = stateMenu;
-      now = 0;
-    }
     if (key == 'w' && now > 0){
       now--;
     }
@@ -92,27 +87,49 @@ class cursor{
     if (key == 'a'){
       if (engine.config[now] > 1){
         engine.config[now]--;
+        textAlign(BASELINE);
+        engine.texting(engine.option[now], 100, 300 + now * 50, -3, determinationMono, 50, 255, 0, 0);
+        textAlign(CENTER);
+        engine.texting("<   >", 400, 300 + now * 50, -3, determinationMono, 50, 255, 0, 0);
+        engine.texting(engine.config[now], 400, 300 + now * 50, -3, determinationMono, 50, 255, 0, 0);
+        textAlign(BASELINE);
+        stroke(255, 0, 0);
+        line(100, 305 + 50 * now, engine.underline[now], 305 + 50 * now);
       }
     }
     
     if (key == 'd'){
       if (engine.config[now] < this.max[now]){
         engine.config[now]++;
+        textAlign(BASELINE);
+        engine.texting(engine.option[now], 100, 300 + now * 50, -3, determinationMono, 50, 0, 255, 0);
+        textAlign(CENTER);
+        engine.texting("<   >", 400, 300 + now * 50, -3, determinationMono, 50, 0, 255, 0);
+        engine.texting(engine.config[now], 400, 300 + now * 50, -3, determinationMono, 50, 0, 255, 0);
+        textAlign(BASELINE);
+        stroke(0, 255, 0);
+        line(100, 305 + 50 * now, engine.underline[now], 305 + 50 * now);
       }
     }
-    
-    
-    
   }
 }
 
 class graphics{
+  
+  //constant
+  static final int stateMenu = 0;
+  static final int stateTutorial = 1;
+  static final int stateConfiguration = 2;
+  static final int stateGame = 3;
+
   game Game;
   int[] config = new int[3];
   boolean await = false;
   String[] suffix = new String[3];
   String[] option = new String[3];
   String[] menu = new String[3];
+  int[] underline = new int[3];
+  color[] ranking = new color[3];
   int frame = 0;
   graphics(){
     suffix[0] = "st";
@@ -127,6 +144,12 @@ class graphics{
     menu[0] = "START";
     menu[1] = "TUTORIAL";
     menu[2] = "OPTION";
+    underline[0] = 270;
+    underline[1] = 195;
+    underline[2] = 220;
+    ranking[0] = #FFD700;
+    ranking[1] = #C0C0C0;
+    ranking[2] = #CD7F32;
   }
   
   void render(){
@@ -145,8 +168,9 @@ class graphics{
   }
 
   void menu(){
-    background(0, 100, 150);
+    background(0);
     this.texting("Safe Landing", 100, 200, 5, determinationMono, 100, 255);
+    Mouse.render();
     
     // mouse
     for (int i = 0; i < 3; i++){
@@ -157,52 +181,105 @@ class graphics{
         this.texting(this.menu[i], 100, 400 + i * 50, 0, determinationMono, 50, 255);
       }
     }
-    Mouse.render();
+    
+    
+    //stripe effect
+    stroke(0);
+    strokeWeight(2);
+    for (int i = 0; i < height; i += 4){
+      line(0, i, width, i);
+    }
+    
+    
   }
   void tutorial(){
     
-    background(0, 100, 150);
+    background(0);
     this.texting("Press \"B\" to back to Menu ", 10, 40, 3, determinationMono, 50, 255);
-    this.texting("TUTORIAL", 200, 150, 5, determinationMono, 100, 255);
+    textAlign(CENTER);
+    this.texting("TUTORIAL", width / 2, 150, 5, determinationMono, 100, 255);
+    textAlign(BASELINE);
     
     fill(255);
     textFont(determinationMono, 30);
     
-    text("1. Try to fall to the ground in the exact time", 30, 200);
+    text("1. Try to fall to the ground in the exact time.", 30, 200);
     text("2. Click the corresponding button whenever you", 30, 230);
     text("   want, and your character will fall.", 30, 260);
     text("3. If you land within times, you're fine.", 30, 290);
     text("4. But if you think too long, you lose.", 30, 320);
     text("5. The player whose landing time is the closest to ", 30, 350);
-    text("   the given time won.", 30, 380);
+    text("   the given time wins.", 30, 380);
+    
+    //stripe effect
+    stroke(0);
+    strokeWeight(2);
+    for (int i = 0; i < height; i += 4){
+      line(0, i, width, i);
+    }
   }
   
   void configuration(){
     
     
-    background(0, 100, 120);
+    background(0);
     this.texting("Press \"B\" to back to Menu ", 10, 40, 3, determinationMono, 50, 255);
-    this.texting("OPTIONS", 200, 150, 5, determinationMono, 100, 255);
+    textAlign(CENTER);
+    this.texting("OPTIONS", width / 2, 150, 5, determinationMono, 100, 255);
     
     textFont(determinationMono, 50);
     for (int i = 0; i < 3; i++){
       if (i == Mouse.now){
+        
+        textAlign(BASELINE);
         this.texting(this.option[i], 100, 300 + i * 50, 3, determinationMono, 50, 255, 255, 0);
-        this.texting("<     >", 300, 300 + i * 50, 3, determinationMono, 50, 255, 255, 0);
-        this.texting(this.config[i], 380, 300 + i * 50, 3, determinationMono, 50, 255, 255, 0);
+        textAlign(CENTER);
+        this.texting("<   >", 400, 300 + i * 50, 3, determinationMono, 50, 255, 255, 0);
+        this.texting(this.config[i], 400, 300 + i * 50, 3, determinationMono, 50, 255, 255, 0);
+        textAlign(BASELINE);
+        stroke(255, 255, 0);
+        line(100, 305 + 50 * i, this.underline[i], 305 + 50 * i);
       }
       else{
+        textAlign(BASELINE);
         this.texting(this.option[i], 100, 300 + i * 50, 0, determinationMono, 50, 255);
-        this.texting(this.config[i], 380, 300 + i * 50, 0, determinationMono, 50, 255);
+        textAlign(CENTER);
+        this.texting(this.config[i], 400, 300 + i * 50, 0, determinationMono, 50, 255);
+        textAlign(BASELINE);
       }
+      
     }
+    
+    //stripe effect
+    stroke(0);
+    strokeWeight(2);
+    for (int i = 0; i < height; i += 4){
+      line(0, i, width, i);
+    }
+    
   }
   
-  void standby(){
+  void standby(int count){
     this.await = false;
-    this.frame++;
     engine.backgroundGame(0);
-    this.texting("Press [T] to get ready!", 140, 300, 5, determinationMono, 50, 255);
+    if (count == -1){
+      this.texting("Press [T] to get ready!", 140, 300, 5, determinationMono, 50, 255);
+    }
+    else{
+      if (count > 0){
+        textAlign(CENTER,CENTER);
+        this.texting(int(ceil(count/60.0)) , 400, 300, 10, determinationMono, 300, 255);
+        textAlign(BASELINE);
+      }
+      else{
+        textAlign(CENTER,CENTER);
+        this.texting("GO!" , 400, 300, 10, determinationMono, 300, 255, 255, 0);
+        textAlign(BASELINE);
+        this.Game.gameState = game.stateMain;
+      }
+      
+      
+    }
     
   }
   
@@ -238,16 +315,15 @@ class graphics{
       rect(160 + 180 * i, 510, 280 + 180 * i, 565);
       fill(255);
       textFont(determinationMono, 60);
-      if (!this.Game.playerList[i].finished){
-        text(frame / 60, 160 + 180 * i, 555);
-        text(".", 190 + 180 * i, 555);
-        text((frame % 60) * 5 / 3, 200 + 180 * i, 555);
-      }
-      else{
+      if (this.Game.playerList[i].finished){
         this.texting(this.Game.playerList[i].result[1] / 60, 160 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
         this.texting(".", 190 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
         this.texting((this.Game.playerList[i].result[1] % 60) * 5 / 3, 200 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
-        
+      }
+      else{
+        this.texting(frame / 60, 160 + 180 * i, 555, 0, determinationMono, 60, 255);
+        this.texting(".", 190 + 180 * i, 555, 0, determinationMono, 60, 255);
+        this.texting((frame % 60) * 5 / 3, 200 + 180 * i, 555, 0, determinationMono, 60, 255);
       }
     }
     
@@ -282,15 +358,23 @@ class graphics{
       
       //print the result
       for (int i = 0; i < this.Game.playerCount; i++){
-        text(i + 1, initX, y);
-        text(suffix[i], initX + 15, y);
-        text("Player", initX + 70, y);
-        text(rank[i].result[0] + 1, initX + 170, y);
-        y += 50;
+        
         if (this.Game.playerList[rank[i].result[0]].result[1] == 10000){
+          fill(255, 0, 0);
+          text(i + 1, initX, y);
+          text(suffix[i], initX + 15, y);
+          text("Player", initX + 70, y);
+          text(rank[i].result[0] + 1, initX + 170, y);
+          y += 50;
           text("Failed", initX, y); 
         }
         else{
+          fill(this.ranking[i]);
+          text(i + 1, initX, y);
+          text(suffix[i], initX + 15, y);
+          text("Player", initX + 70, y);
+          text(rank[i].result[0] + 1, initX + 170, y);
+          y += 50;
           text(this.Game.playerList[rank[i].result[0]].result[1] / 60, initX, y); 
           text(".", initX + 15, y);
           text((this.Game.playerList[rank[i].result[0]].result[1] % 60) * 5 / 3, initX + 20, y);
@@ -298,6 +382,15 @@ class graphics{
         }
         y += 50;
       }
+      
+       //stripe effect
+      stroke(0, 100, 150);
+      strokeWeight(2);
+      for (int i = 0; i < height; i += 4){
+        line(0, i, width, i);
+      }
+        
+      
       this.await = true;
     }
     
@@ -308,6 +401,9 @@ class graphics{
     int[] test = new int[3];
     player temp;
     for (int i = 0; i < this.Game.playerCount; i++){
+      if (list[i].result[1] > this.Game.time){
+        list[i].result[1] = 10000;
+      }
       test[i] = list[i].result[1];
       list[i].result[1] = abs(this.Game.time - list[i].result[1]);
     }
@@ -364,8 +460,6 @@ class graphics{
   }
 }
 
-
-
 class player{
   int[] result = new int [2];
   int[] pos = new int[2];
@@ -397,7 +491,7 @@ class player{
     }
     
   }
-  boolean update(int frame, int time){
+  boolean update(int frame){
     if (!this.finished){
       if (keyPressed && key == dic[this.result[0]]){
         this.fall = true;
@@ -409,16 +503,19 @@ class player{
       }
       if (this.pos[1] > 500){
         this.pos[1] = 500;
-        this.result[1] = frame > time ? 10000 : frame;
+        this.result[1] = frame;
         this.finished = true;
+        this.fall = false;
         return true;
       }
     }
     stroke(0);
     fill(this.colour[0], this.colour[1], this.colour[2]);
+    
+    ellipseMode(CENTER);
     ellipse(this.pos[0], this.pos[1], 20, 20);
     
-    if (!this.fall){
+    if (!this.fall && !this.finished){
     fill(100);
     rectMode(CORNER);
     rect(pos[0] - 60, 160, 120, 20);
@@ -432,11 +529,18 @@ class player{
 
 class game{
   
+  //constant for the game
+  static final int stateStandby = 0;
+  static final int stateMain = 1;
+  static final int stateResult = 2;
+  
   // all the variable is here
   int playerCount, frame;
   int gameState;
   int time, acceleration;
   int finishedCount;
+  int countdown = 180;
+  boolean finished;
   player[] playerList = new player[3];
   
   // constructor
@@ -445,6 +549,7 @@ class game{
     this.frame = 0;
     this.playerCount = player;
     this.time = 60 * time;
+    this.finishedCount = 0;
     //create player
     for (int i = 0 ; i < this.playerCount; i++){
       this.playerList[i] = new player(i, acceleration);
@@ -466,31 +571,44 @@ class game{
   }
  
   void standby(){
-    engine.standby();
-    if (keyPressed && key == 't'){
-      this.gameState = stateMain;
+    
+    if (keyPressed && key == 't' || this.countdown < 180){
+      engine.standby(this.countdown);
+      this.countdown--;
+    }
+    else{
+      engine.standby(-1);
     }
   }
   
   void run(){
-    boolean finished = true;
+    this.finished = true;
     
     if (this.frame >= this.time){
        for (int i = 0; i < this.playerCount; i++){
          if (this.playerList[i].fall && !this.playerList[i].finished){
-           finished = false;
+           this.finished = false;
+           println("test");
          }
-       }
-       if (finished && this.frame == this.time + 60){
-           this.gameState = stateResult;
-           return;
        }    
+    }
+    if (this.finished && this.frame >= (this.time + 60)){
+         this.gameState = stateResult;
+         println("test2");
+         return;
     }
     this.frame++;
     engine.backgroundGame(this.frame);
     for (int i = 0; i < this.playerCount; i++){
-      this.playerList[i].update(this.frame, this.time);
+      if (this.playerList[i].update(this.frame)){
+        this.finishedCount++;
+      }
     }
+    if (this.finishedCount == this.playerCount){
+          this.frame = this.time;
+          this.finishedCount = 0;
+          println("test3");
+      }
   }
   
   void result(){
