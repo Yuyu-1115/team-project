@@ -19,3 +19,6 @@ A跟D調整當下項目的數值
 
 ### 教學&結算畫面
 按B回到主畫面
+
+## Credit
+Determination Mono Web Font, the font used in games, is distributed under the license of Creative Commons (BY-NC-ND), I'm not the owner of the font. If you need more information about the font, check the [original pages](https://www.fontspace.com/determination-mono-web-font-f23209).
