@@ -7,6 +7,7 @@ PFont determinationMono;
 
 void setup(){
   size(800, 600);
+  engine.Game = new game(3, 5, 5);
   
   //load the font
   determinationMono  = createFont("DeterminationMonoWebRegular-Z5oq.ttf", 100);
@@ -49,10 +50,14 @@ class cursor{
     if (state == graphics.stateConfiguration){
       this.actionConfiguration();
     }
-    if (key == 'b'){
-      state = graphics.stateMenu;
-      now = 0;
+    if (state == graphics.stateTutorial){
+      this.actionTutorial();
     }
+    
+    if (engine.Game.gameState == game.stateResult && state == graphics.stateGame){
+      this.actionResult();
+    }
+    
   }
   
   
@@ -78,6 +83,10 @@ class cursor{
     }
   }
   void actionConfiguration(){
+    if (key == 'b'){
+      state = graphics.stateMenu;
+      now = 0;
+    }
     if (key == 'w' && now > 0){
       now--;
     }
@@ -110,6 +119,28 @@ class cursor{
         stroke(0, 255, 0);
         line(100, 305 + 50 * now, engine.underline[now], 305 + 50 * now);
       }
+    }
+  }
+  void actionResult(){
+    if (key == 'r'){
+      engine.Game = new game(engine.config[0], engine.config[1], engine.config[2]);
+      state = graphics.stateGame;
+      textAlign(CENTER);
+      engine.texting("[R] RESTART", 200, 530, -3, determinationMono, 50, 255, 255, 0);
+      textAlign(BASELINE);
+    }
+    if (key == 'b'){
+      state = graphics.stateMenu;
+      now = 0;
+      textAlign(CENTER);
+      engine.texting("[B] MENU", 600, 530, -3, determinationMono, 50, 255, 255, 0);
+      textAlign(BASELINE);
+    }
+  }
+  void actionTutorial(){
+    if (key == 'b'){
+      state = graphics.stateMenu;
+      now = 0;
     }
   }
 }
@@ -195,9 +226,9 @@ class graphics{
   void tutorial(){
     
     background(0);
-    this.texting("Press \"B\" to back to Menu ", 10, 40, 3, determinationMono, 50, 255);
     textAlign(CENTER);
     this.texting("TUTORIAL", width / 2, 150, 5, determinationMono, 100, 255);
+    this.texting("[B] Menu ", width / 2, 550, 3, determinationMono, 50, 255);
     textAlign(BASELINE);
     
     fill(255);
@@ -223,8 +254,9 @@ class graphics{
     
     
     background(0);
-    this.texting("Press \"B\" to back to Menu ", 10, 40, 3, determinationMono, 50, 255);
     textAlign(CENTER);
+    
+    this.texting("[B] Menu ", width / 2, 550, 3, determinationMono, 50, 255);
     this.texting("OPTIONS", width / 2, 150, 5, determinationMono, 100, 255);
     
     textFont(determinationMono, 50);
@@ -351,7 +383,7 @@ class graphics{
       
       player[] rank = this.ranking(this.Game.playerList);
       background(0, 100, 150);
-      this.texting("Press \"B\" to back to Menu ", 10, 40, 3, determinationMono, 50, 255);
+      
       this.texting("RESULT", 250, 150, 5, determinationMono, 100, 255);
       textFont(determinationMono, 30);
       
@@ -382,6 +414,11 @@ class graphics{
         }
         y += 50;
       }
+      
+      textAlign(CENTER);
+      this.texting("[R] RESTART", 200, 530, 3, determinationMono, 50, 255);
+      this.texting("[B] MENU", 600, 530, 3, determinationMono, 50, 255);
+      textAlign(BASELINE);
       
        //stripe effect
       stroke(0, 100, 150);
@@ -550,6 +587,8 @@ class game{
     this.playerCount = player;
     this.time = 60 * time;
     this.finishedCount = 0;
+    
+    
     //create player
     for (int i = 0 ; i < this.playerCount; i++){
       this.playerList[i] = new player(i, acceleration);
@@ -588,13 +627,11 @@ class game{
        for (int i = 0; i < this.playerCount; i++){
          if (this.playerList[i].fall && !this.playerList[i].finished){
            this.finished = false;
-           println("test");
          }
        }    
     }
     if (this.finished && this.frame >= (this.time + 60)){
          this.gameState = stateResult;
-         println("test2");
          return;
     }
     this.frame++;
@@ -607,7 +644,6 @@ class game{
     if (this.finishedCount == this.playerCount){
           this.frame = this.time;
           this.finishedCount = 0;
-          println("test3");
       }
   }
   
