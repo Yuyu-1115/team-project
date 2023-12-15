@@ -7,7 +7,8 @@ PFont determinationMono;
 
 void setup(){
   size(800, 600);
-  engine.Game = new game(3, 5, 5, 0);
+  engine.Game = new gameTA(3, 5, 5);
+  engine.Game2 = new gameSM(3, 5, 5);
   
   //load the font
   determinationMono  = createFont("DeterminationMonoWebRegular-Z5oq.ttf", 100);
@@ -55,7 +56,7 @@ class cursor{
     if (state == graphics.stateTutorial){
       this.actionTutorial();
     }
-    if (engine.Game.gameState == game.stateResult && state == graphics.stateGame){
+    if (engine.Game.gameState == gameTA.stateResult && state == graphics.stateGame){
       this.actionResult();
     }
     
@@ -127,7 +128,7 @@ class cursor{
   }
   void actionResult(){
     if (key == 'r'){
-      engine.Game = new game(engine.config[0], engine.config[1], engine.config[2], engine.Game.mode);
+      engine.Game = new gameTA(engine.config[0], engine.config[1], engine.config[2]);
       state = graphics.stateGame;
       textAlign(CENTER);
       engine.texting("[R] RESTART", 200, 530, -3, determinationMono, 50, 255, 255, 0);
@@ -158,8 +159,14 @@ class cursor{
       now = 1;
     }
     
-    if (key == ENTER){
-        engine.Game = new game(engine.config[0], engine.config[1], engine.config[2], now);
+    if (key == ENTER && now == 0){
+        engine.Game = new gameTA(engine.config[0], engine.config[1], engine.config[2]);
+        engine.mode = this.now;
+        state = graphics.stateGame;
+    }
+    if (key == ENTER && now == 1){
+        engine.Game2 = new gameSM(engine.config[0], engine.config[1], engine.config[2]);
+        engine.mode = this.now;
         state = graphics.stateGame;
     }
     if (key == 'b'){
@@ -180,8 +187,12 @@ class graphics{
   static final int stateConfiguration = 2;
   static final int stateSelection = 3;
   static final int stateGame = 4;
+  
+  static final int timeAttack = 0;
+  static final int scoreMadness = 1;
 
-  game Game;
+  gameTA Game;
+  gameSM Game2;
   int[] config = new int[3];
   boolean await = false;
   String[] suffix = new String[3];
@@ -190,6 +201,7 @@ class graphics{
   int[] underline = new int[3];
   color[] ranking = new color[3];
   int frame = 0;
+  int mode = timeAttack;
   graphics(){
     suffix[0] = "st";
     suffix[1] = "nd";
@@ -225,7 +237,12 @@ class graphics{
       this.selectionMenu();
     }
     if (state == stateGame){
-      this.Game.operate();
+      if (this.mode == timeAttack){
+        this.Game.operate();
+      }
+      else{
+        this.Game2.operate();
+      }
     }
   }
 
@@ -324,7 +341,7 @@ class graphics{
   
   void standby(int count){
     this.await = false;
-    engine.backgroundGameTA(0);
+    engine.backgroundTA(0);
     if (count == -1){
       this.texting("Press [T] to get ready!", 140, 300, 5, determinationMono, 50, 255);
     }
@@ -338,12 +355,30 @@ class graphics{
         textAlign(CENTER,CENTER);
         this.texting("GO!" , 400, 300, 10, determinationMono, 300, 255, 255, 0);
         textAlign(BASELINE);
-        this.Game.gameState = game.stateMain;
-      }
-      
-      
+        this.Game.gameState = gameTA.stateMain;
+      } 
     }
-    
+  }
+  
+  void standbySM(int count, int[] slots){
+    this.await = false;
+    engine.backgroundSM(-1, slots);
+    if (count == -1){
+      this.texting("Press [T] to get ready!", 140, 300, 5, determinationMono, 50, 255);
+    }
+    else{
+      if (count > 0){
+        textAlign(CENTER,CENTER);
+        this.texting(int(ceil(count/60.0)) , 400, 300, 10, determinationMono, 300, 255);
+        textAlign(BASELINE);
+      }
+      else{
+        textAlign(CENTER,CENTER);
+        this.texting("GO!" , 400, 300, 10, determinationMono, 300, 255, 255, 0);
+        textAlign(BASELINE);
+        this.Game.gameState = gameSM.stateMain;
+      } 
+    }
   }
   
   void selectionMenu(){
@@ -351,7 +386,7 @@ class graphics{
     text[0] = "TIME ATTACK";
     text[1] = "SCORING MADNESS";
     
-    this.backgroundGame();
+    this.backgroundTA(-1);
     rectMode(CORNERS);
     fill(0);
     stroke(0);
@@ -383,110 +418,7 @@ class graphics{
     textAlign(BASELINE);
   }
   
-  void backgroundGame(){
-    rectMode(CORNERS);
-    background(200);
-    
-    
-    //wall
-    stroke(0);
-    fill(#7C4D14);
-    strokeWeight(3);
-    rect(0, 100, 100, height);
-    rect(700, 100, width, height);
-    
-    //ground (floor)
-    fill(0, 200, 0);
-    noStroke();
-    rect(102, 550, 699, height);
-    
-    //bracket*3
-    strokeWeight(10);
-    for (int i = 1; i < 4; i += 1){
-      stroke(i == 1 ? 255 : 0, i == 2 ? 255 : 0, i == 3 ? 255 : 0);
-      line(180 * i, 100, 180 * i, 550);
-      line(180 * i + 80, 100, 180 * i + 80, 550);
-    }
-    
-    //clock
-    strokeWeight(2);
-    for (int i = 0; i < 3; i++){
-      stroke(i == 0 ? 255 : 0, i == 1 ? 255 : 0, i == 2 ? 255 : 0);
-      fill(0);
-      rect(160 + 180 * i, 510, 280 + 180 * i, 565);
-      fill(255);
-      textFont(determinationMono, 60);
-      
-      stroke(0);
-      fill(0);
-      rect(140, 20, 660, 100);
-      this.texting(0, 160 + 180 * i, 555, 0, determinationMono, 60, 255);
-      this.texting(".", 190 + 180 * i, 555, 0, determinationMono, 60, 255);
-      this.texting(0, 200 + 180 * i, 555, 0, determinationMono, 60, 255);
-      this.texting("SAFE", 150, 90, 0, determinationMono, 80, 255);
-      this.texting("LANDING", 375, 90, 0, determinationMono, 80, 255);
-    }
-  }
-  
-  
-  void backgroundGameTA(int frame){
-    rectMode(CORNERS);
-    background(200);
-    
-    //wall
-    stroke(0);
-    fill(#7C4D14);
-    strokeWeight(3);
-    rect(0, 100, 100, height);
-    rect(700, 100, width, height);
-    
-    //ground (floor)
-    fill(0, 200, 0);
-    noStroke();
-    rect(102, 550, 699, height);
-    
-    //bracket*3
-    strokeWeight(10);
-    for (int i = 1; i < this.Game.playerCount + 1; i += 1){
-      stroke(this.Game.playerList[i - 1].colour[0], this.Game.playerList[i - 1].colour[1], this.Game.playerList[i - 1].colour[2]);
-      line(180 * i, 100, 180 * i, 550);
-      line(180 * i + 80, 100, 180 * i + 80, 550);
-    }
-    
-    //clock
-    strokeWeight(2);
-    for (int i = 0; i < this.Game.playerCount; i++){
-      stroke(this.Game.playerList[i].colour[0], this.Game.playerList[i].colour[1], this.Game.playerList[i].colour[2]);
-      fill(0);
-      rect(160 + 180 * i, 510, 280 + 180 * i, 565);
-      fill(255);
-      textFont(determinationMono, 60);
-      if (this.Game.playerList[i].finished){
-        this.texting(this.Game.playerList[i].result[1] / 60, 160 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
-        this.texting(".", 190 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
-        this.texting((this.Game.playerList[i].result[1] % 60) * 5 / 3, 200 + 180 * i, 555, 0, determinationMono, 60, 255, 255, 0);
-      }
-      else{
-        this.texting(frame / 60, 160 + 180 * i, 555, 0, determinationMono, 60, 255);
-        this.texting(".", 190 + 180 * i, 555, 0, determinationMono, 60, 255);
-        this.texting((frame % 60) * 5 / 3, 200 + 180 * i, 555, 0, determinationMono, 60, 255);
-      }
-    }
-    //banner
-    this.frame++;
-    stroke(0);
-    fill(0);
-    rect(140, 20, 660, 100);
-    if ((this.frame / 180) % 2 == 0){
-      this.texting("SAFE", 150, 90, 0, determinationMono, 80, 255);
-      this.texting("LANDING", 375, 90, 0, determinationMono, 80, 255);
-    }else{
-      this.texting("GOAL:", 150, 90, 0, determinationMono, 80, 255);
-      this.texting( this.config[1], 420, 90, 0, determinationMono, 80, 255, 255, 0);
-      this.texting("sec(s)", 520, 90, 0, determinationMono, 40, 255);
-    }
-  }
-  void backgroundGameSM(int frame){
+  void backgroundTA(int frame){
     rectMode(CORNERS);
     background(200);
     
@@ -545,6 +477,55 @@ class graphics{
     }
     
   }
+  
+  void backgroundSM(int frame, int[] slots ){
+    rectMode(CORNERS);
+    background(200);
+    
+    //wall
+    stroke(0);
+    fill(#7C4D14);
+    strokeWeight(3);
+    rect(0, 100, 100, height);
+    rect(700, 100, width, height);
+    
+    //ground (floor)
+    fill(0, 200, 0);
+    noStroke();
+    rect(102, 550, 699, height);
+    
+    //bracket*5
+    strokeWeight(10);
+    for (int i = 1; i < 6; i += 1){
+      stroke(150);
+      line(125 * i, 100, 125 * i, 550);
+      line(125 * i + 60, 100, 125 * i + 60, 550);
+    }
+    
+    //clock
+    strokeWeight(2);
+    for (int i = 0; i < 5; i++){
+      stroke(150);
+      fill(0);
+      rect(110 + 125 * i, 510, 200 + 125 * i, 565);
+      fill(255);
+      this.texting("P", 140 + 125 * i, 555, 0, determinationMono, 60, 255, 255, 0);
+    }
+    
+      swsw    fill(0);
+     rect(140, 20, 660, 100);
+    if ((this.frame / 180) % 2 == 0){
+      this.texting("SCORE",  determinationMono, 80, 255);
+      this.texting("LANDING", 375, 90, 0, determinationMono, 80, 255);
+    }else{
+      this.texting("GOAL:", 150, 90, 0, determinationMono, 80, 255);
+      this.texting( this.config[1], 420, 90, 0, determinationMono, 80, 255, 255, 0);
+      this.texting("sec(s)", 520, 90, 0, determinationMono, 40, 255);
+    }
+  
+  }
+  
+  
   
   void result(){
     
@@ -733,97 +714,4 @@ class player{
     
     return false;
   }
-}
-
-class game{
-  
-  //constant for the game
-  static final int stateStandby = 0;
-  static final int stateMain = 1;
-  static final int stateResult = 2;
-  static final int timeAttack = 0;
-  static final int scoreMadness = 1;
-  
-  // all the variable is here
-  int playerCount, frame;
-  int gameState;
-  int time, acceleration;
-  int finishedCount;
-  int mode;
-  int countdown = 180;
-  boolean finished;
-  player[] playerList = new player[3];
-  
-  // constructor
-  game(int player, int time, int acceleration, int mode){
-    this.gameState = stateStandby;
-    this.frame = 0;
-    this.playerCount = player;
-    this.time = 60 * time;
-    this.finishedCount = 0;
-    this.mode = mode;
-    
-    
-    //create player
-    for (int i = 0 ; i < this.playerCount; i++){
-      this.playerList[i] = new player(i, acceleration);
-    } 
-    
-  }
-  
-  //determine the state
-  void operate(){
-    if (this.gameState == stateStandby){
-      this.standby();
-    }
-    else if (this.gameState == stateMain){
-      this.run();
-    }
-    else{
-      this.result();
-    }
-  }
- 
-  void standby(){
-    
-    if (keyPressed && key == 't' || this.countdown < 180){
-      engine.standby(this.countdown);
-      this.countdown--;
-    }
-    else{
-      engine.standby(-1);
-    }
-  }
-  
-  void run(){
-    this.finished = true;
-    
-    if (this.frame >= this.time){
-       for (int i = 0; i < this.playerCount; i++){
-         if (this.playerList[i].fall && !this.playerList[i].finished){
-           this.finished = false;
-         }
-       }    
-    }
-    if (this.finished && this.frame >= (this.time + 60)){
-         this.gameState = stateResult;
-         return;
-    }
-    this.frame++;
-    engine.backgroundGameTA(this.frame);
-    for (int i = 0; i < this.playerCount; i++){
-      if (this.playerList[i].update(this.frame)){
-        this.finishedCount++;
-      }
-    }
-    if (this.finishedCount == this.playerCount){
-          this.frame = this.time;
-          this.finishedCount = 0;
-      }
-  }
-  
-  void result(){
-    engine.result();
-  }
-  
 }
