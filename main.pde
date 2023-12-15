@@ -511,17 +511,10 @@ class graphics{
       fill(255);
       this.texting("P", 140 + 125 * i, 555, 0, determinationMono, 60, 255, 255, 0);
     }
-    
-      swsw    fill(0);
+     fill(0);
      rect(140, 20, 660, 100);
-    if ((this.frame / 180) % 2 == 0){
-      this.texting("SCORE",  determinationMono, 80, 255);
-      this.texting("LANDING", 375, 90, 0, determinationMono, 80, 255);
-    }else{
-      this.texting("GOAL:", 150, 90, 0, determinationMono, 80, 255);
-      this.texting( this.config[1], 420, 90, 0, determinationMono, 80, 255, 255, 0);
-      this.texting("sec(s)", 520, 90, 0, determinationMono, 40, 255);
-    }
+    this.texting("SCORE", 150, 90, 0, determinationMono, 80, 255);
+    this.texting("1-2-3", 350, 90, 0, determinationMono, 80, 255);
   
   }
   
@@ -585,7 +578,7 @@ class graphics{
     
   }
   
-  //default sort() doesn't support custom datatype, so yeah
+  //default sort() doesn't support custom datatype, so yeahs3
   player[] ranking(player[] list){
     int[] test = new int[3];
     player temp;
