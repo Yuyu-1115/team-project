@@ -6,7 +6,7 @@ graphics engine = new graphics();
 PFont determinationMono;
 
 void setup(){
-  // initialization
+  //initialization
   size(800, 600);
   engine.Game = new game(3, 5, 5);
   
@@ -29,7 +29,7 @@ class cursor{
   int[] underline = new int[3];
   
   cursor(){
-    // initialization
+    //initialization
     now = 0;
     max[0] = 3;
     max[1] = 9;
