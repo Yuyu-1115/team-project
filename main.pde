@@ -8,8 +8,6 @@ PFont determinationMono;
 void setup(){
   //initialization
   size(800, 600);
-  engine.Game = new game(3, 5, 5);
-  
   //load the font
   determinationMono  = createFont("DeterminationMonoWebRegular-Z5oq.ttf", 100);
   
@@ -155,7 +153,7 @@ class graphics{
   static final int stateConfiguration = 2;
   static final int stateGame = 3;
 
-  game Game;
+  game Game = new game(3, 5, 5);
   int[] config = new int[3];
   boolean await = false;
   String[] suffix = new String[3];
